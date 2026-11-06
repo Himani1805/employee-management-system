@@ -95,6 +95,34 @@
             margin: 14px 2px 0;
             color: #5c6b7a;
         }
+        #pager {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 14px;
+        }
+        #pager button {
+            min-width: 40px;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #c5d2e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #1f4e79;
+            font: inherit;
+            cursor: pointer;
+        }
+        #pager button[disabled] {
+            color: #9aa8b5;
+            cursor: default;
+        }
+        #pager button.current {
+            background: #1f4e79;
+            border-color: #1f4e79;
+            color: #fff;
+        }
         @media (max-width: 700px) {
             h1 { font-size: 24px; }
             form { grid-template-columns: 1fr; }
@@ -149,14 +177,18 @@
                 <tbody id="dataAppend"></tbody>
             </table>
         </div>
+        <div id="pager"></div>
     </div>
     <script>
         let employees = []
+        let page = 1
+        let pageSize = 10
         let department = document.getElementById("department")
         let gender = document.getElementById("gender")
         let salary = document.getElementById("salary")
         let dataAppend = document.getElementById("dataAppend")
         let empty = document.getElementById("empty")
+        let pager = document.getElementById("pager")
         let button = document.getElementById("catch")
 
         button.addEventListener("click", async function () {
@@ -171,6 +203,11 @@
         salary.addEventListener("change", showRows)
 
         function showRows() {
+            page = 1
+            renderPage()
+        }
+
+        function renderPage() {
             let list = employees.filter(function (person) {
                 let departmentMatch = department.value === "selectDepartment" || person.department.toLowerCase() === department.value.toLowerCase()
                 let genderMatch = gender.value === "" || person.gender.toLowerCase() === gender.value.toLowerCase()
@@ -182,10 +219,16 @@
                 }
                 return a.salary - b.salary
             })
+            let pageCount = Math.ceil(list.length / pageSize)
+            if (page > pageCount) {
+                page = pageCount || 1
+            }
+            let start = (page - 1) * pageSize
+            let visible = list.slice(start, start + pageSize)
             dataAppend.innerHTML = ""
-            list.forEach(function (person, index) {
+            visible.forEach(function (person, index) {
                 let row = document.createElement("tr")
-                let values = [index + 1, person.name, titleCase(person.gender), titleCase(person.department), person.salary]
+                let values = [start + index + 1, person.name, titleCase(person.gender), titleCase(person.department), person.salary]
                 values.forEach(function (value) {
                     let cell = document.createElement("td")
                     cell.textContent = value
@@ -198,8 +241,43 @@
             } else if (list.length === 0) {
                 empty.textContent = "No employees match these filters."
             } else {
-                empty.textContent = list.length + " employees"
+                empty.textContent = "Showing " + (start + 1) + "-" + (start + visible.length) + " of " + list.length
             }
+            renderPager(pageCount)
+        }
+
+        function renderPager(pageCount) {
+            pager.innerHTML = ""
+            if (pageCount < 2) {
+                return
+            }
+            pager.appendChild(pageButton("Previous", page === 1, function () {
+                page -= 1
+                renderPage()
+            }))
+            for (let number = 1; number <= pageCount; number++) {
+                let pageNumber = pageButton(String(number), false, function () {
+                    page = number
+                    renderPage()
+                })
+                if (number === page) {
+                    pageNumber.classList.add("current")
+                }
+                pager.appendChild(pageNumber)
+            }
+            pager.appendChild(pageButton("Next", page === pageCount, function () {
+                page += 1
+                renderPage()
+            }))
+        }
+
+        function pageButton(label, disabled, onClick) {
+            let control = document.createElement("button")
+            control.type = "button"
+            control.textContent = label
+            control.disabled = disabled
+            control.addEventListener("click", onClick)
+            return control
         }
 
         function titleCase(value) {
