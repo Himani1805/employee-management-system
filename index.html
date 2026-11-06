@@ -3,110 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Employee Management System</title>
     <style>
-        h1{
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", sans-serif;
+            color: #1c2833;
+            background: #eef3f8;
+        }
+        h1 {
+            margin: 32px 20px 18px;
             text-align: center;
+            color: #1f4e79;
+            font-size: 32px;
+        }
+        #root {
+            max-width: 980px;
+            margin: 0 auto 48px;
+            padding: 0 20px;
+        }
+        #catch {
+            display: block;
+            margin: 0 auto 16px;
+            height: 42px;
+            padding: 0 28px;
+            border: none;
+            border-radius: 8px;
+            background: #2b619e;
+            color: #fff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #catch:hover { background: #1f4e79; }
+        form {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #d9e2ec;
+            border-radius: 16px;
+        }
+        form label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #35506b;
         }
         select {
-            background-color: white;
-            border: 1px solid gray;
-            border-radius: 1%;
+            width: 100%;
+            height: 42px;
+            padding: 8px 12px;
+            background: #fbfcfe;
+            border: 1px solid #c5d2e0;
+            border-radius: 8px;
+            font: inherit;
+            color: #1c2833;
         }
-        #black{
-            background-color: #F2F2F2;
+        .table-wrap {
+            margin-top: 18px;
+            overflow-x: auto;
+            background: #fff;
+            border: 1px solid #d9e2ec;
+            border-radius: 16px;
         }
-
+        table {
+            width: 100%;
+            min-width: 640px;
+            border-collapse: collapse;
+        }
+        #black { background: #1f4e79; color: #fff; }
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 14px;
+        }
+        td { border-top: 1px solid #e6edf4; }
+        tbody tr:nth-child(even) { background: #f7fafc; }
+        #empty {
+            margin: 14px 2px 0;
+            color: #5c6b7a;
+        }
+        @media (max-width: 700px) {
+            h1 { font-size: 24px; }
+            form { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <button id="catch">Fetch</button>
     <div id="root">
         <h1>Employee Management System</h1>
-        <form >
-            <label for="">Filter by Department</label>
-            <select id="department">
-                <option value="selectDepartment">--Select by Department--</option>
-                <option value="Operations">Operations</option>
-                <option value="HR">HR</option>
-                <option value="Finance">Finance</option>
-                <option value="Engineering">Engineering</option>
-            </select>
-
-            <label for="">Filter by Gender</label>
-            <select id="gender">
-                <option value=""></option>
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-            </select>
-
-            <label for="">Sort by Salary:</label>
-            <select id="salary">
-                <option value="Low">Low to High</option>
-                <option value="High">Hight to Low</option>
-            </select>
+        <form>
+            <label>Filter by Department
+                <select id="department">
+                    <option value="selectDepartment">--Select by Department--</option>
+                    <option value="Operations">Operations</option>
+                    <option value="HR">HR</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Marketing">Marketing</option>
+                </select>
+            </label>
+            <label>Filter by Gender
+                <select id="gender">
+                    <option value="">All</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Others">Others</option>
+                </select>
+            </label>
+            <label>Sort by Salary
+                <select id="salary">
+                    <option value="Low">Low to High</option>
+                    <option value="High">High to Low</option>
+                </select>
+            </label>
         </form>
-        <br><br>
-        <table id="table">
-            <thead id="black">
-                <tr>
-                    <th>S.No</th>
-                    <th>Name</th>
-                    <th>Gender</th>
-                    <th>Department</th>
-                    <th>Salary</th>
-                </tr> 
-            </thead>
-            <tbody id="dataAppend">
-
-            </tbody>
-        </table>
+        <p id="empty">Click Fetch to load the employees.</p>
+        <div class="table-wrap">
+            <table id="table">
+                <thead id="black">
+                    <tr>
+                        <th>S.No</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Department</th>
+                        <th>Salary</th>
+                    </tr>
+                </thead>
+                <tbody id="dataAppend"></tbody>
+            </table>
+        </div>
     </div>
-</body>
-</html>
-<script>
-    let root = document.getElementById("root");
-    let form = document.querySelector("form");
-    let department = document.getElementById("department");
-    let gender = document.getElementById("gender");
-    let salary = document.getElementById("salary")
-    let dataAppend =document.getElementById("dataAppend");
+    <script>
+        let employees = []
+        let department = document.getElementById("department")
+        let gender = document.getElementById("gender")
+        let salary = document.getElementById("salary")
+        let dataAppend = document.getElementById("dataAppend")
+        let empty = document.getElementById("empty")
+        let button = document.getElementById("catch")
 
-
-    let button = document.getElementById("catch");
-    button.addEventListener("click", function(){
-        async function dataFetch(){
+        button.addEventListener("click", async function () {
             let data = await fetch("https://dbioz2ek0e.execute-api.ap-south-1.amazonaws.com/mockapi/get-employees")
             let response = await data.json()
-            console.log(response.data)
-            dataRender(response.data)
-        }
-        dataFetch()
-    })
-    function dataRender(response){
-        response.forEach(function(ele, index){
-            let card = document.createElement("div")
-            let id = document.createElement("p")
-            let image = document.createElement("img")
-            card.setAttribute("id","card")
-
-            let name = document.createElement("p")
-            let gender = document.createElement("p");
-            let department = document.createElement("p");
-            let salary = document.createElement("p")
-
-            image.src = ele.image;
-            id.innerText = ele.id;
-            name.innerText = ele.name;
-            gender.innerText = ele.gender;
-            department.innerText = ele.department;
-            salary.innertext = ele.salary
-
-            card.append(id,image,name,gender,department,salary);
-            root.append(card)
-
-
+            employees = response.data
+            showRows()
         })
-    }
 
-</script>
+        department.addEventListener("change", showRows)
+        gender.addEventListener("change", showRows)
+        salary.addEventListener("change", showRows)
+
+        function showRows() {
+            let list = employees.filter(function (person) {
+                let departmentMatch = department.value === "selectDepartment" || person.department.toLowerCase() === department.value.toLowerCase()
+                let genderMatch = gender.value === "" || person.gender.toLowerCase() === gender.value.toLowerCase()
+                return departmentMatch && genderMatch
+            })
+            list.sort(function (a, b) {
+                if (salary.value === "High") {
+                    return b.salary - a.salary
+                }
+                return a.salary - b.salary
+            })
+            dataAppend.innerHTML = ""
+            list.forEach(function (person, index) {
+                let row = document.createElement("tr")
+                let values = [index + 1, person.name, titleCase(person.gender), titleCase(person.department), person.salary]
+                values.forEach(function (value) {
+                    let cell = document.createElement("td")
+                    cell.textContent = value
+                    row.appendChild(cell)
+                })
+                dataAppend.appendChild(row)
+            })
+            if (employees.length === 0) {
+                empty.textContent = "Click Fetch to load the employees."
+            } else if (list.length === 0) {
+                empty.textContent = "No employees match these filters."
+            } else {
+                empty.textContent = list.length + " employees"
+            }
+        }
+
+        function titleCase(value) {
+            if (!value) {
+                return ""
+            }
+            return value.charAt(0).toUpperCase() + value.slice(1)
+        }
+    </script>
+</body>
+</html>
